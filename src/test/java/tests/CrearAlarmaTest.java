@@ -5,7 +5,7 @@ import activities.alarma.AlarmasActivity;
 import device.Android;
 
 import io.appium.java_client.android.AndroidDriver;
-
+import org.openqa.selenium.StaleElementReferenceException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,7 +83,6 @@ public class CrearAlarmaTest {
                 "Alarmas coincidentes antes: " + cantidadAntes
         );
 
-        // EJECUTAR LAS ACCIONES
         alarmasActivity.agregarAlarma();
 
         alarmasActivity.cambiarModoTeclado();
@@ -94,31 +93,30 @@ public class CrearAlarmaTest {
 
         alarmasActivity.guardarAlarma();
 
-        // ESPERAR A QUE APAREZCA LA NUEVA ALARMA
+
         WebDriverWait wait = new WebDriverWait(
-                driver, Duration.ofSeconds(15)
+                driver, Duration.ofSeconds(20)
         );
 
-        wait.until(d ->
-                alarmasActivity.contarAlarmasVisibles(
-                        hora, minutos, periodo
-                ) > cantidadAntes
-        );
+        wait.ignoring(StaleElementReferenceException.class);
 
-        // OBTENER EL RESULTADO REAL
-        int cantidadDespues = alarmasActivity
-                .contarAlarmasVisibles(
-                        hora, minutos, periodo
-                );
+        int cantidadDespues = wait.until(d -> {
 
-        // VERIFICACION CON JUNIT
+            int cantidadActual = alarmasActivity
+                    .contarAlarmasVisibles(
+                            hora, minutos, periodo
+                    );
+
+            return cantidadActual > cantidadAntes
+                    ? cantidadActual : null;
+        });
+
         Assertions.assertEquals(
                 cantidadAntes + 1,
                 cantidadDespues,
                 "ERROR: No se creo una nueva alarma"
         );
 
-        // GUARDAR EVIDENCIA
         Path evidencia = Path.of(
                 "build",
                 "evidencias",

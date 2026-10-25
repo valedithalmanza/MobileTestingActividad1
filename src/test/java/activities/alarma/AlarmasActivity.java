@@ -6,7 +6,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
+import org.openqa.selenium.StaleElementReferenceException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -198,6 +198,7 @@ public class AlarmasActivity {
     }
 
 
+
     public int contarAlarmasVisibles(
             int hora, int minutos, String periodo) {
 
@@ -211,27 +212,44 @@ public class AlarmasActivity {
                 )
         );
 
-        List<WebElement> alarmas = driver.findElements(
-                By.id(ID + "digital_clock")
-        );
+        for (int intento = 0; intento < 4; intento++) {
 
-        int cantidad = 0;
+            try {
 
-        for (WebElement alarma : alarmas) {
+                List<WebElement> alarmas = driver.findElements(
+                        By.id(ID + "digital_clock")
+                );
 
-            String horaEncontrada = normalizar(
-                    alarma.getText()
-            );
+                int cantidad = 0;
 
-            System.out.println(
-                    "Alarma encontrada: " + alarma.getText()
-            );
+                for (WebElement alarma : alarmas) {
 
-            if (horaEncontrada.equals(esperado)) {
-                cantidad++;
+                    String texto = alarma.getText();
+
+                    String horaEncontrada = normalizar(texto);
+
+                    System.out.println(
+                            "Alarma encontrada: " + texto
+                    );
+
+                    if (horaEncontrada.equals(esperado)) {
+                        cantidad++;
+                    }
+                }
+
+                return cantidad;
+
+            } catch (StaleElementReferenceException e) {
+
+                System.out.println(
+                        "Lista de alarmas actualizada. Reintentando..."
+                );
             }
         }
 
-        return cantidad;
+        throw new IllegalStateException(
+                "No se pudo leer la lista de alarmas"
+        );
     }
+
 }
