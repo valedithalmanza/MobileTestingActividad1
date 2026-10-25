@@ -1,0 +1,13 @@
+﻿.gradle/
+build/
+out/
+.idea/
+*.iml
+*.ipr
+*.iws
+local.properties
+.env
+*.log
+diagnostico_*.png
+.DS_Store
+Thumbs.db
